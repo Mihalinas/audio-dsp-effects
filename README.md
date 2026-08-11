@@ -1,4 +1,6 @@
-# Audio DSP Effects
+## Audio DSP Effects
+
+[![Tests](https://github.com/Mihalinas/audio-dsp-effects/actions/workflows/tests.yml/badge.svg)](https://github.com/Mihalinas/audio-dsp-effects/actions/workflows/tests.yml)
 
 A Python-based digital audio processing project containing implementations of common audio effects originally developed as part of a bachelor's thesis at the Faculty of Electrical Engineering, University of Belgrade (ETF).
 
@@ -8,7 +10,7 @@ The project started as a collection of standalone DSP scripts and was subsequent
 
 The project currently includes four digital audio effects:
 
-* **8-band Equalizer** — configurable band-pass filter based EQ
+* **8-band Equalizer** — configurable IIR peak-filter based EQ
 * **Dynamic Range Compressor** — threshold, ratio, attack, release and makeup gain
 * **Peak Limiter** — attack/release envelope-based peak limiting
 * **Multi-tap Delay Reverb** — multiple delayed feedback paths for artificial reverberation
@@ -41,6 +43,9 @@ audio-dsp-effects/
 │
 ├── examples/
 ├── docs/
+├── .github/
+│   └── workflows/
+│       └── tests.yml
 ├── pyproject.toml
 ├── requirements.txt
 ├── README.md
@@ -96,9 +101,11 @@ Current test coverage includes:
 * Limiter
 * Reverb
 
-The refactored implementations were also compared against the original DSP scripts using the same input signal.
+During the refactoring process, the refactored implementations were validated against the original scripts using identical input signals.
 
-For the current reference audio, the generated WAV output matches the original output after serialization.
+The automated test suite now uses deterministic test signals and independent reference calculations so that the tests can run reproducibly in CI without requiring external audio files.
+
+GitHub Actions automatically runs the test suite on pushes and pull requests.
 
 ## Audio Processing
 
@@ -126,16 +133,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install the project dependencies:
+Install the project in editable mode together with development dependencies:
 
 ```bash
-pip install -r requirements.txt
-```
-
-Install the package in editable mode:
-
-```bash
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 Run the tests:
@@ -190,7 +191,7 @@ Output
 The project demonstrates several fundamental concepts from digital signal processing and digital audio production, including:
 
 * IIR filter design
-* Band-pass filtering
+* Peak-filter based EQ processing
 * Amplitude envelope detection
 * Attack and release smoothing
 * Dynamic range compression
@@ -234,7 +235,7 @@ This approach makes it possible to improve the software structure without losing
 
 The four core DSP effects have been refactored into the `audio_dsp` package and are covered by automated tests.
 
-The current project focuses on correctness, reproducibility and clean software structure. Further development can extend the package with additional effects, improved parameter validation, processing pipelines and performance optimizations.
+The project currently focuses on correctness, reproducibility and clean software structure. Further development can extend the package with additional effects, improved parameter validation, processing pipelines and performance optimizations.
 
 ## License
 
