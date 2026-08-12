@@ -66,21 +66,45 @@ The `src/audio_dsp/` package separates the DSP algorithms from file handling and
 
 Each effect exposes a reusable Python interface that can be imported by other applications or tested independently.
 
-For example:
+For example, the effects can be combined into a reusable processing chain:
 
 ```python
 import soundfile as sf
 
 from audio_dsp.eq import apply_eq
+from audio_dsp.compressor import Compressor
+from audio_dsp.limiter import Limiter
+from audio_dsp.reverb import Reverb
 
 signal, sample_rate = sf.read("input.wav")
 
 processed = apply_eq(signal, sample_rate)
 
+processed = Compressor(
+    threshold_db=-20.0,
+    ratio=3.0,
+    attack_ms=10.0,
+    release_ms=100.0,
+    makeup_gain_db=3.0,
+).process(processed, sample_rate)
+
+processed = Limiter(
+    threshold_db=-1.0,
+    attack_ms=0.5,
+    release_ms=50.0,
+).process(processed, sample_rate)
+
+processed = Reverb(
+    dry_mix=0.5,
+    wet_mix=0.5,
+).process(processed, sample_rate)
+
 sf.write("output.wav", processed, sample_rate)
 ```
 
-The same approach is used for the compressor, limiter and reverb implementations.
+The complete DSP theory and the mapping between the thesis, original scripts,
+refactored modules and tests are documented in
+[`docs/dsp_overview.md`](docs/dsp_overview.md).
 
 ## Testing
 
