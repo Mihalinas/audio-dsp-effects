@@ -17,12 +17,12 @@ The original implementations were developed as standalone Python scripts accompa
 
 The thesis presents the theoretical background of four common audio effects:
 
-| Effect | Main DSP concept | Original implementation | Refactored implementation | Tests |
+| Effect | Main DSP concept | Original implementation | Refactored implementation | Test |
 |---|---|---|---|---|
-| 8-band EQ | Cascaded digital filters | [`original/`](../original/) | [`src/audio_dsp/`](../src/audio_dsp/) | [`tests/`](../tests/) |
-| Compressor | Envelope detection and gain reduction | [`original/`](../original/) | [`src/audio_dsp/`](../src/audio_dsp/) | [`tests/`](../tests/) |
-| Limiter | Amplitude control with a hard dynamic ceiling | [`original/`](../original/) | [`src/audio_dsp/`](../src/audio_dsp/) | [`tests/`](../tests/) |
-| Reverb | Delay lines and feedback | [`original/`](../original/) | [`src/audio_dsp/`](../src/audio_dsp/) | [`tests/`](../tests/) |
+| 8-band EQ | Cascaded IIR filters | [`eq_original.py`](../original/eq_original.py) | [`eq.py`](../src/audio_dsp/eq.py) | [`test_eq.py`](../tests/test_eq.py) |
+| Compressor | Envelope detection and gain reduction | [`compressor_original.py`](../original/compressor_original.py) | [`compressor.py`](../src/audio_dsp/compressor.py) | [`test_compressor.py`](../tests/test_compressor.py) |
+| Limiter | Envelope-based peak control | [`limiter_original.py`](../original/limiter_original.py) | [`limiter.py`](../src/audio_dsp/limiter.py) | [`test_limiter.py`](../tests/test_limiter.py) |
+| Reverb | Multi-tap delay lines and feedback | [`reverb_original.py`](../original/reverb_original.py) | [`reverb.py`](../src/audio_dsp/reverb.py) | [`test_reverb.py`](../tests/test_reverb.py) |
 
 The thesis describes the theoretical principles behind these effects, while this repository focuses on making the implementations modular, readable, reproducible, and testable.
 
@@ -117,7 +117,11 @@ This is best understood as a frequency-band equalizer approximation rather than 
 
 ### Refactored implementation
 
-The refactored EQ code in [`src/audio_dsp/`](../src/audio_dsp/) separates the processing logic from file I/O and visualization.
+The refactored EQ implementation is exposed through the
+[`apply_eq`](../src/audio_dsp/eq.py) function. The original reference
+script is preserved in [`eq_original.py`](../original/eq_original.py), while
+the numerical equivalence is checked by
+[`test_eq_matches_reference`](../tests/test_eq.py).
 
 This makes the effect easier to reuse in other contexts:
 
@@ -155,19 +159,23 @@ This also means that the order of processing and the filter state are relevant i
 
 ### Test intent
 
-The EQ tests should verify observable signal behaviour rather than reproduce the internal implementation line by line.
+The current EQ test uses a deterministic stereo signal and compares
+[`apply_eq`](../src/audio_dsp/eq.py) with a reference calculation based
+directly on the original thesis algorithm.
 
-Relevant properties include:
+The test verifies that:
 
-- The output preserves the input shape.
-- Mono input remains mono.
-- Multichannel input remains multichannel.
-- The output contains finite numerical values.
-- Processing does not unexpectedly modify the input array in place.
-- A configured band changes the signal in a predictable way.
-- The implementation accepts valid sample-rate and parameter combinations.
+- The eight configured bands are processed in the same order.
+- The same IIR filters are designed for each band.
+- Gain is converted and applied consistently.
+- Both stereo channels are processed.
+- The refactored implementation matches the original numerical result
+  within a defined tolerance.
 
-A useful conceptual test signal is a sine wave. If the sine frequency is close to one of the configured bands, the processed amplitude should differ from the amplitude of a sine wave outside that band.
+This is a reference-equivalence test. It protects the refactoring from
+accidental changes while preserving the behaviour of
+[`eq_original.py`](../original/eq_original.py). It is not yet a complete
+frequency-response or perceptual-audio test.
 
 ## Dynamic Range Compressor
 
@@ -276,7 +284,12 @@ input
 
 ### Refactored implementation
 
-The refactored compressor in [`src/audio_dsp/`](../src/audio_dsp/) keeps the DSP stages explicit and separates them from audio file handling.
+The refactored compressor is implemented by the
+[`Compressor`](../src/audio_dsp/compressor.py) class and its
+`.process(...)` method. The original script is preserved in
+[`compressor_original.py`](../original/compressor_original.py), while
+[`test_compressor_matches_reference`](../tests/test_compressor.py) compares
+the refactored output with the reference calculation.
 
 This improves the code in several ways:
 
@@ -289,17 +302,24 @@ The refactored version should be viewed as a compact broadband compressor. The t
 
 ### Test intent
 
-The compressor tests should verify the following properties:
+The current compressor test uses a deterministic stereo signal and compares
+[`Compressor.process(...)`](../src/audio_dsp/compressor.py) with a reference
+calculation based directly on the original thesis implementation.
 
-- Signals below the threshold are largely preserved.
-- Signals above the threshold are attenuated.
-- A higher ratio produces stronger gain reduction.
-- Attack and release parameters affect the time behaviour.
-- Make-up gain changes the final level after compression.
-- Mono and multichannel inputs retain their expected shapes.
-- The output remains finite and bounded for valid input.
+The test verifies that:
 
-A simple test signal can contain a quiet section followed by a louder section. The expected result is that the louder section is reduced relative to the unprocessed signal, while the quieter section is affected much less.
+- The envelope calculation matches the original algorithm.
+- Attack and release coefficients are calculated consistently.
+- Threshold and ratio are applied consistently.
+- Make-up gain is applied consistently.
+- Both stereo channels are processed.
+- The refactored implementation matches the original numerical result
+  within a defined tolerance.
+
+This is a reference-equivalence test. It protects the refactoring from
+accidental changes while preserving the behaviour of
+[`compressor_original.py`](../original/compressor_original.py). It is not yet
+a complete perceptual test for attack, release, knee, or loudness behaviour.
 
 ## Limiter
 
@@ -351,7 +371,12 @@ The original implementation includes:
 
 ### Refactored implementation
 
-The refactored limiter in [`src/audio_dsp/`](../src/audio_dsp/) keeps the core idea of envelope-based peak control while making the processing callable as a normal module function.
+The refactored limiter is implemented by the
+[`Limiter`](../src/audio_dsp/limiter.py) class and its
+`.process(...)` method. The original script is preserved in
+[`limiter_original.py`](../original/limiter_original.py), while
+[`test_limiter_matches_reference`](../tests/test_limiter.py) compares the
+refactored output with the reference calculation.
 
 This implementation should not be described as a full mastering-grade brickwall limiter. The theoretical limiter model in the thesis includes features such as lookahead and oversampling, while the current implementation is a simpler sample-domain limiter based on envelope detection.
 
@@ -364,16 +389,27 @@ That difference is important for technical transparency:
 
 ### Test intent
 
-The limiter tests should focus on safety and predictable behaviour:
+The current limiter test uses a deterministic stereo signal and compares
+[`Limiter.process(...)`](../src/audio_dsp/limiter.py) with a reference
+calculation based directly on the original thesis implementation.
 
-- The output remains finite.
-- The output does not exceed the configured threshold by more than an accepted numerical tolerance.
-- Signals below the threshold are preserved as much as possible.
-- Strong peaks receive more attenuation than low-level samples.
-- Mono and multichannel shapes are preserved.
-- The input is not unexpectedly modified in place.
+The test verifies that:
 
-A useful test fixture is a signal containing a short peak above the threshold. The test can assert that the peak is reduced while the rest of the signal remains close to the expected value.
+- The envelope calculation matches the original algorithm.
+- Attack and release coefficients are calculated consistently.
+- Threshold-based gain reduction is applied consistently.
+- Both stereo channels are processed.
+- The refactored implementation matches the original numerical result
+  within a defined tolerance.
+
+This is a reference-equivalence test. It protects the refactoring from
+accidental changes while preserving the behaviour of
+[`limiter_original.py`](../original/limiter_original.py).
+
+Because the implementation uses a smoothed envelope, it should not be
+described as a complete true-peak or lookahead brickwall limiter. The thesis
+discusses those more advanced techniques, but they are outside the scope of
+the current implementation.
 
 ## Algorithmic Reverb
 
@@ -450,7 +486,12 @@ input ───────────┼── delay line 2 ──┼── fe
 
 ### Refactored implementation
 
-The refactored reverb in [`src/audio_dsp/`](../src/audio_dsp/) makes the delay-line processing independent of file loading, plotting, and output serialization.
+The refactored reverb is implemented by the
+[`Reverb`](../src/audio_dsp/reverb.py) class and its
+`.process(...)` method. The original script is preserved in
+[`reverb_original.py`](../original/reverb_original.py), while
+[`test_reverb_matches_reference`](../tests/test_reverb.py) compares the
+refactored output with the reference calculation.
 
 The refactoring clarifies several important implementation details:
 
@@ -465,24 +506,27 @@ This gives the repository a compact and understandable example of stateful DSP p
 
 ### Test intent
 
-The reverb tests should verify:
+The current reverb test uses a short deterministic stereo signal and compares
+[`Reverb.process(...)`](../src/audio_dsp/reverb.py) with a reference
+calculation based directly on the original thesis implementation.
 
-- The output has the same shape as the input.
-- The output is finite.
-- The effect produces delayed energy after an impulse.
-- Feedback produces a decaying tail rather than an unbounded signal.
-- Changing the delay time changes the location of the reflected energy.
-- Mono and multichannel inputs are handled consistently.
-- Processing does not mutate the input unexpectedly.
+The test verifies that:
 
-An impulse signal is particularly useful for testing reverb:
+- Delay buffers are created consistently.
+- Delay-line indices are advanced consistently.
+- Feedback gains are applied consistently.
+- Dry and wet signals are mixed consistently.
+- Both stereo channels are processed.
+- The refactored implementation matches the original numerical result
+  within a defined tolerance.
 
-```text
-input:   1, 0, 0, 0, 0, ...
-output:  direct impulse + delayed reflections + decaying tail
-```
+This is a reference-equivalence test. It protects the refactoring from
+accidental changes while preserving the behaviour of
+[`reverb_original.py`](../original/reverb_original.py).
 
-The impulse response makes the delay structure visible and gives the tests a deterministic way to inspect the effect.
+The current implementation is a multi-tap feedback-delay reverb. It does not
+yet implement a complete feedback delay network, all-pass diffusion stages,
+frequency-dependent damping, or independent stereo cross-feed.
 
 ## Thesis-to-Repository Mapping
 
