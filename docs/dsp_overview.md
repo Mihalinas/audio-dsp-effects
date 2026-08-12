@@ -24,7 +24,7 @@ The thesis presents the theoretical background of four common audio effects:
 | Limiter | Amplitude control with a hard dynamic ceiling | [`original/`](../original/) | [`src/audio_dsp/`](../src/audio_dsp/) | [`tests/`](../tests/) |
 | Reverb | Delay lines and feedback | [`original/`](../original/) | [`src/audio_dsp/`](../src/audio_dsp/) | [`tests/`](../tests/) |
 
-The thesis describes the theoretical principles behind these effects, while this repository focuses on making the implementations modular, readable, reproducible, and testable. [1]
+The thesis describes the theoretical principles behind these effects, while this repository focuses on making the implementations modular, readable, reproducible, and testable.
 
 ## Processing Model
 
@@ -95,7 +95,7 @@ where \(f_0\) is the center frequency and \(\Delta f\) is the bandwidth.
 
 A higher \(Q\) produces a narrower and more selective filter. A lower \(Q\) produces a wider and more gradual tonal change.
 
-The thesis also introduces several common filter types, including high-pass, low-pass, band-pass, notch, peak, low-shelf, and high-shelf filters. [1]
+The thesis also introduces several common filter types, including high-pass, low-pass, band-pass, notch, peak, low-shelf, and high-shelf filters.
 
 ### Original implementation
 
@@ -185,7 +185,7 @@ The main compressor parameters are:
 - Make-up gain.
 - Optional lookahead.
 
-The thesis describes the compressor as a combination of envelope detection, gain-reduction calculation, and time-dependent gain smoothing. [1]
+The thesis describes the compressor as a combination of envelope detection, gain-reduction calculation, and time-dependent gain smoothing.
 
 ### Envelope detection
 
@@ -321,7 +321,7 @@ where \(T\) is the limiting threshold or ceiling.
 
 Unlike a general-purpose compressor, a limiter is primarily used to protect the output from excessive peaks and to increase perceived loudness without allowing the signal to exceed a selected maximum.
 
-The thesis discusses envelope following, gain reduction, lookahead, release time, input gain, and ceiling control as relevant limiter concepts. [1]
+The thesis discusses envelope following, gain reduction, lookahead, release time, input gain, and ceiling control as relevant limiter concepts.
 
 ### Original implementation
 
@@ -402,7 +402,7 @@ The thesis distinguishes between:
 - Late reflections, which create a dense and diffuse reverberation tail.
 - Damping, which models the faster absorption of high frequencies.
 - Pre-delay, which separates the direct sound from the onset of the reverberant field.
-- Wet/dry mixing, which controls the balance between processed and unprocessed signal. [1]
+- Wet/dry mixing, which controls the balance between processed and unprocessed signal.
 
 ### Delay-line model
 
@@ -581,4 +581,4 @@ The theoretical background for this overview is based on the thesis and the foll
 - Reiss, J. D., and McPherson, A. *Audio Effects: Theory, Implementation and Application*, CRC Press, 2014.
 - Pohlmann, K. C. *Principles of Digital Audio*, 6th edition, McGraw-Hill, 2010.
 
-The original thesis contains the detailed discussion of the four effects, their parameters, mathematical models, and standalone Python implementations. [1]
+The original thesis contains the detailed discussion of the four effects, their parameters, mathematical models, and standalone Python implementations.
